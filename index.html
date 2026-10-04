@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pan Tech Africa</title>
+<meta name="theme-color" content="#1E1536">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
+<!-- Pi SDK: loaded async so a failure here can never blank the page -->
+<script src="https://sdk.minepi.com/pi-sdk.js" async></script>
+<style>
+:root{
+  --ink:#1E1536; --ink2:#4A4163; --muted:#7B7494;
+  --paper:#F7F5FB; --card:#FFFFFF; --line:#E4DFF0;
+  --purple:#6B3FA0; --purple-d:#4F2C7B; --gold:#F2B233; --gold-d:#C98E10;
+  --good:#1F8A5B; --bad:#C0392B;
+  --r:14px; --safe-b:env(safe-area-inset-bottom,0px); --safe-t:env(safe-area-inset-top,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{scroll-padding-top:70px}
+body{font-family:'Sora',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;background:var(--paper);color:var(--ink);line-height:1.5;padding-top:var(--safe-t);padding-bottom:calc(var(--safe-b) + 90px);min-height:100vh}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+input,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.wrap{max-width:1100px;margin:0 auto;padding:0 16px}
+
+/* Header */
+header{position:sticky;top:var(--safe-t);z-index:20;background:var(--ink);color:#fff}
+.bar{display:flex;align-items:center;gap:12px;padding:12px 16px;max-width:1100px;margin:0 auto}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;letter-spacing:-.01em;white-space:nowrap}
+.logo .pi{width:32px;height:32px;border-radius:10px;background:var(--gold);color:var(--ink);display:grid;place-items:center;font-size:20px;font-weight:800}
+.logo small{display:block;font-size:10px;font-weight:600;color:#BDB3D8;letter-spacing:.02em;margin-top:-3px}
+.search{flex:1;position:relative;min-width:0}
+.search input{width:100%;padding:10px 14px 10px 38px;border-radius:12px;border:0;background:#2E2350;color:#fff;font-size:14px}
+.search input::placeholder{color:#A99FCB}
+.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:#A99FCB}
+.user{font-size:12px;color:#BDB3D8;white-space:nowrap}
+
+/* Hero */
+.hero{background:var(--ink);color:#fff;padding:4px 0 26px}
+.hero h1{font-size:clamp(26px,6vw,42px);line-height:1.1;letter-spacing:-.02em;font-weight:800;max-width:15em}
+.hero p{color:#CFC6E8;margin-top:10px;font-size:14px;max-width:34em}
+.hero .price-tag{display:inline-flex;align-items:center;gap:8px;margin-top:16px;background:var(--gold);color:var(--ink);font-weight:700;font-size:13px;padding:8px 14px;border-radius:999px}
+
+/* Filters */
+.filters{padding:16px 0 4px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;padding:8px 16px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-size:13px;font-weight:600;color:var(--ink2)}
+.chip[aria-pressed=true]{background:var(--purple);border-color:var(--purple);color:#fff}
+.tools{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;align-items:center}
+.tools select{padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card);font-size:13px}
+.range{display:flex;align-items:center;gap:10px;flex:1;min-width:210px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:13px}
+.range input{flex:1;accent-color:var(--purple)}
+.range b{min-width:84px;text-align:right;color:var(--purple-d)}
+.count{font-size:13px;color:var(--muted);margin:12px 0}
+
+/* Grid and cards */
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+@media(min-width:700px){.grid{grid-template-columns:repeat(3,1fr);gap:16px}}
+@media(min-width:960px){.grid{grid-template-columns:repeat(4,1fr)}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;position:relative}
+.card .img{display:block;width:100%;aspect-ratio:1/1;background:#EEE9F8}
+.card .img svg{width:100%;height:100%;display:block}
+.card .body{padding:12px;display:flex;flex-direction:column;gap:6px;flex:1}
+.brand{font-size:11px;color:var(--muted);font-weight:600}
+.card h3{font-size:14px;line-height:1.25;font-weight:700}
+.price{font-weight:800;font-size:18px;color:var(--purple-d)}
+.price i{font-style:normal;color:var(--gold-d);margin-right:2px}
+.specs{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:3px 8px;font-size:11.5px;color:var(--ink2);margin-top:2px}
+.specs li{display:flex;flex-direction:column;line-height:1.25}
+.specs span{font-size:10px;color:var(--muted)}
+.cmp{display:flex;align-items:center;gap:8px;margin-top:auto;padding-top:8px;font-size:12px;font-weight:600;color:var(--ink2)}
+.cmp input{width:18px;height:18px;accent-color:var(--purple)}
+.badge{position:absolute;top:10px;left:10px;background:var(--gold);color:var(--ink);font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:999px}
+.empty{text-align:center;padding:50px 16px;color:var(--ink2)}
+.empty b{display:block;font-size:17px;color:var(--ink);margin-bottom:6px}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 22px;border-radius:12px;font-weight:700;font-size:15px}
+.btn-gold{background:var(--gold);color:var(--ink)}
+.btn-gold:active{background:var(--gold-d)}
+.btn-purple{background:var(--purple);color:#fff}
+.btn-line{border:1.5px solid var(--line);background:var(--card);color:var(--ink)}
+.btn[disabled]{opacity:.6}
+
+/* Detail */
+.back{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--purple-d);padding:16px 0 10px}
+.detail{display:grid;gap:22px;padding-bottom:20px}
+@media(min-width:800px){.detail{grid-template-columns:1fr 1fr;align-items:start}}
+.gallery .main{background:#EEE9F8;border-radius:var(--r);overflow:hidden;aspect-ratio:1/1;border:1px solid var(--line)}
+.gallery .main svg{width:100%;height:100%;display:block}
+.thumbs{display:flex;gap:10px;margin-top:10px}
+.thumbs button{width:72px;height:72px;border-radius:10px;overflow:hidden;border:2px solid transparent;background:#EEE9F8}
+.thumbs button[aria-current=true]{border-color:var(--purple)}
+.thumbs svg{width:100%;height:100%;display:block}
+.info h1{font-size:clamp(22px,4.5vw,30px);line-height:1.15;letter-spacing:-.015em;font-weight:800;margin:4px 0 10px}
+.info .price{font-size:30px}
+.info .desc{color:var(--ink2);font-size:14px;margin:12px 0 18px}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.actions .btn-gold{flex:1;min-width:160px}
+.note{font-size:12px;color:var(--muted);margin-top:10px}
+.table{width:100%;border-collapse:collapse;font-size:14px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-top:16px}
+.table th,.table td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+.table tr:last-child th,.table tr:last-child td{border-bottom:0}
+.table th{width:38%;font-weight:600;color:var(--muted);font-size:13px;background:#FBFAFE}
+h2.sec{font-size:18px;margin:26px 0 4px;letter-spacing:-.01em}
+
+/* Compare */
+.scroll-x{overflow-x:auto;border-radius:var(--r);margin-top:14px}
+.ctable{border-collapse:separate;border-spacing:0;min-width:100%;background:var(--card);border:1px solid var(--line);border-radius:var(--r);font-size:13.5px}
+.ctable th,.ctable td{padding:12px 14px;border-bottom:1px solid var(--line);text-align:left;min-width:140px;vertical-align:top}
+.ctable th:first-child{position:sticky;left:0;background:#FBFAFE;color:var(--muted);font-weight:600;font-size:12.5px;min-width:112px;z-index:1;border-right:1px solid var(--line)}
+.ctable thead td{background:var(--card)}
+.ctable thead .pimg{width:90px;height:90px;border-radius:12px;overflow:hidden;background:#EEE9F8;margin-bottom:8px}
+.ctable thead .pimg svg{width:100%;height:100%;display:block}
+.ctable thead b{display:block;font-size:13.5px;line-height:1.25}
+.ctable thead a{font-size:12px;color:var(--purple);font-weight:600;display:inline-block;margin-top:4px}
+.best{background:#EAF7F0;color:var(--good);font-weight:700}
+.legend{font-size:12px;color:var(--muted);margin-top:10px}
+.legend span{background:#EAF7F0;color:var(--good);font-weight:700;padding:1px 8px;border-radius:6px}
+.meter{height:6px;border-radius:99px;background:var(--line);margin-top:6px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--purple)}
+
+/* Compare tray */
+.tray{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--ink);color:#fff;padding:12px 16px calc(12px + var(--safe-b));display:none;box-shadow:0 -6px 24px rgba(30,21,54,.25)}
+.tray.show{display:block}
+.tray .in{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:10px}
+.tray .sel{flex:1;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
+.tray .sel span{flex:none;background:#2E2350;border-radius:999px;padding:6px 6px 6px 12px;font-size:12px;display:flex;align-items:center;gap:6px;white-space:nowrap;max-width:170px}
+.tray .sel span em{font-style:normal;overflow:hidden;text-overflow:ellipsis}
+.tray .sel button{width:20px;height:20px;border-radius:50%;background:#4A3E75;font-size:12px;line-height:20px;text-align:center;flex:none}
+.tray .btn{padding:10px 16px;font-size:14px}
+
+/* Support chat */
+.fab{position:fixed;right:16px;bottom:calc(16px + var(--safe-b));z-index:40;background:var(--purple);color:#fff;border-radius:999px;padding:13px 18px;font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px;box-shadow:0 8px 22px rgba(79,44,123,.4)}
+body.tray-on .fab{bottom:calc(86px + var(--safe-b))}
+.chat{position:fixed;z-index:50;right:0;bottom:0;width:100%;height:78vh;max-height:620px;background:var(--card);border-radius:20px 20px 0 0;box-shadow:0 -10px 40px rgba(30,21,54,.3);display:none;flex-direction:column;overflow:hidden}
+@media(min-width:600px){.chat{right:16px;bottom:16px;width:380px;border-radius:20px}}
+.chat.open{display:flex}
+.chat header{position:static;padding:14px 16px;display:flex;align-items:center;gap:10px;background:var(--ink)}
+.chat header b{font-size:15px}
+.chat header small{display:block;font-size:11px;color:#BDB3D8;font-weight:400}
+.chat header .dot{width:9px;height:9px;border-radius:50%;background:#3DDC97}
+.chat header button{margin-left:auto;font-size:22px;line-height:1;color:#fff;padding:2px 8px}
+.msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:var(--paper)}
+.m{max-width:84%;padding:10px 13px;border-radius:14px;font-size:13.5px;white-space:pre-wrap}
+.m.bot{background:var(--card);border:1px solid var(--line);align-self:flex-start;border-bottom-left-radius:4px}
+.m.me{background:var(--purple);color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
+.quick{display:flex;gap:6px;flex-wrap:wrap;padding:8px 14px 0;background:var(--paper)}
+.quick button{font-size:12px;padding:6px 12px;border-radius:999px;background:var(--card);border:1px solid var(--line);color:var(--purple-d);font-weight:600}
+.cform{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line);background:var(--card);padding-bottom:calc(12px + var(--safe-b))}
+.cform input{flex:1;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px;min-width:0}
+.cform button{background:var(--gold);color:var(--ink);font-weight:700;padding:0 16px;border-radius:10px}
+.human{display:block;text-align:center;font-size:12px;padding:8px;color:var(--purple);font-weight:600;background:var(--paper)}
+
+/* Toast and modal */
+.toast{position:fixed;left:50%;top:calc(76px + var(--safe-t));transform:translateX(-50%) translateY(-20px);background:var(--ink);color:#fff;padding:12px 18px;border-radius:12px;font-size:13.5px;z-index:90;opacity:0;pointer-events:none;transition:.25s;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.modal{position:fixed;inset:0;background:rgba(30,21,54,.6);z-index:80;display:none;align-items:center;justify-content:center;padding:20px}
+.modal.show{display:flex}
+.modal .box{background:var(--card);border-radius:18px;padding:24px;max-width:380px;width:100%;text-align:center}
+.modal h3{font-size:19px;margin-bottom:8px}
+.modal p{font-size:14px;color:var(--ink2);margin-bottom:18px}
+footer{margin-top:40px;padding:24px 0;border-top:1px solid var(--line);font-size:12px;color:var(--muted);text-align:center}
+
+
+.card .img img,.gallery .main img,.thumbs img,.ctable .pimg img{width:100%;height:100%;display:block;object-fit:contain;background:#fff}
+.card .img,.gallery .main{background:#fff}
+/* Professional refinements */
+.hero{padding:10px 0 30px;background:linear-gradient(180deg,#1E1536 0%,#2A1D4D 100%)}
+.hero h1{font-weight:700;letter-spacing:-.025em}
+.hero .price-tag{background:transparent;border:1px solid #5A4A8A;color:#F2D58A;font-weight:600}
+.trust{background:var(--card);border-bottom:1px solid var(--line)}
+.trust-in{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px;padding-top:14px;padding-bottom:14px}
+@media(min-width:800px){.trust-in{grid-template-columns:repeat(4,1fr)}}
+.trust-in div{font-size:12px;color:var(--muted);line-height:1.35;border-left:3px solid var(--gold);padding-left:10px}
+.trust-in b{display:block;font-size:13px;color:var(--ink);font-weight:700}
+.card{border-radius:12px;transition:box-shadow .2s,border-color .2s}
+.card:hover{border-color:#CFC5E6;box-shadow:0 8px 24px rgba(30,21,54,.09)}
+.card .img{border-bottom:1px solid var(--line)}
+.price{letter-spacing:-.01em}
+.card .price{font-size:16px}
+.badge{background:var(--ink);color:#fff;font-weight:600}
+.btn{border-radius:10px;font-weight:600}
+.btn-gold{box-shadow:0 1px 0 rgba(0,0,0,.08)}
+footer{line-height:1.8;color:var(--muted)}
+footer b{color:var(--ink);font-size:13px}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="bar">
+    <a href="#/" class="logo" style="color:#fff;text-decoration:none" aria-label="Pan Tech Africa home">
+      <span class="pi">π</span>
+      <span>Pan Tech Africa<small>Technology marketplace for Pi</small></span>
+    </a>
+    <label class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+      <input id="q" type="search" placeholder="Search name, brand or category" autocomplete="off" aria-label="Search products">
+    </label>
+  </div>
+</header>
+
+<main id="app"></main>
+
+<div class="tray" id="tray"><div class="in">
+  <div class="sel" id="traySel"></div>
+  <button class="btn btn-gold" id="trayGo">Compare</button>
+</div></div>
+
+<button class="fab" id="fab" aria-label="Chat with Support">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.5 7.2L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>
+  Chat with Support
+</button>
+
+<section class="chat" id="chat" aria-label="Customer support chat">
+  <header>
+    <span class="dot"></span>
+    <div><b>Pan Tech Support</b><small>Usually replies in a few minutes</small></div>
+    <button id="chatClose" aria-label="Close chat">&times;</button>
+  </header>
+  <div class="msgs" id="msgs" aria-live="polite"></div>
+  <div class="quick" id="quick"></div>
+  <a class="human" id="human" href="#" target="_blank" rel="noopener">Talk to a person</a>
+  <form class="cform" id="cform" onsubmit="return false">
+    <input id="cin" placeholder="Type your question" autocomplete="off" aria-label="Message">
+    <button id="csend" type="submit">Send</button>
+  </form>
+</section>
+
+<div class="toast" id="toast" role="status"></div>
+<div class="modal" id="modal"><div class="box">
+  <h3 id="mTitle"></h3><p id="mText"></p>
+  <button class="btn btn-purple" id="mOk" style="width:100%">Done</button>
+</div></div>
+
+<script>
+/* ============ CONFIG: edit these ============ */
+var CONFIG = {
+  IMAGE_FOLDER: "images/",       // folder holding your product photos (see README)
+  SANDBOX: true,                // set to false when your app is live on Mainnet
+  API_BASE: "",                 // your backend, e.g. "https://api.yourdomain.com". Needs /payments/approve and /payments/complete
+  SUPPORT_WHATSAPP: "",         // e.g. "2348012345678" (country code, no +). Leave empty to hide
+  SUPPORT_EMAIL: "support@pantechafrica.example"
+};
+
+/* ============ PRODUCTS (prices in Pi are sample values: set your own) ============ */
+var PRODUCTS = [
+  {id:"nova-x5",name:"Tecno Camon 30 Pro",brand:"Tecno",type:"Smartphone",price:0.00058,ram:"12 GB",storage:"256 GB",cpu:"Dimensity 8200",battery:"5000 mAh",hrs:18,perf:78,screen:'6.78" AMOLED 144Hz',cam:"50 MP + 50 MP + 2 MP",os:"Android 14",weight:"196 g",hue:265,kind:"phone",tag:"Popular",desc:"A fast mid-range phone with a bright AMOLED screen and a camera built for low light."},
+  {id:"infinix-gt20",name:"Infinix GT 20 Pro",brand:"Infinix",type:"Smartphone",price:0.00054,ram:"12 GB",storage:"256 GB",cpu:"Dimensity 8200 Ultimate",battery:"5000 mAh",hrs:17,perf:80,screen:'6.78" AMOLED 144Hz',cam:"108 MP + 2 MP",os:"Android 14",weight:"194 g",hue:195,kind:"phone",tag:"Gaming",desc:"Built for gaming, with a high refresh rate screen, shoulder triggers and a cooling system."},
+  {id:"galaxy-a55",name:"Samsung Galaxy A55 5G",brand:"Samsung",type:"Smartphone",price:0.00064,ram:"8 GB",storage:"256 GB",cpu:"Exynos 1480",battery:"5000 mAh",hrs:20,perf:72,screen:'6.6" Super AMOLED 120Hz',cam:"50 MP + 12 MP + 5 MP",os:"Android 14",weight:"213 g",hue:225,kind:"phone",desc:"Metal frame, water resistance and four years of software updates."},
+  {id:"iphone-15",name:"Apple iPhone 15",brand:"Apple",type:"Smartphone",price:0.00082,ram:"6 GB",storage:"128 GB",cpu:"Apple A16 Bionic",battery:"3349 mAh",hrs:22,perf:92,screen:'6.1" Super Retina OLED',cam:"48 MP + 12 MP",os:"iOS 17",weight:"171 g",hue:330,kind:"phone",tag:"Premium",desc:"Fast, simple and long supported, with USB-C and a 48 MP main camera."},
+  {id:"redmi-note13",name:"Xiaomi Redmi Note 13",brand:"Xiaomi",type:"Smartphone",price:0.0004,ram:"8 GB",storage:"128 GB",cpu:"Snapdragon 685",battery:"5000 mAh",hrs:19,perf:48,screen:'6.67" AMOLED 120Hz',cam:"108 MP + 2 MP",os:"Android 13",weight:"188 g",hue:20,kind:"phone",tag:"Best value",desc:"A big AMOLED screen and all-day battery at an easy price."},
+  {id:"hp-pavilion",name:"HP Pavilion 15",brand:"HP",type:"Laptop",price:0.00088,ram:"16 GB",storage:"512 GB SSD",cpu:"Intel Core i5-1335U",battery:"41 Wh",hrs:9,perf:70,screen:'15.6" FHD IPS',cam:"720p webcam",os:"Windows 11",weight:"1.74 kg",hue:210,kind:"laptop",desc:"A dependable everyday laptop for study, work and streaming."},
+  {id:"lenovo-ideapad",name:"Lenovo IdeaPad Slim 3",brand:"Lenovo",type:"Laptop",price:0.00076,ram:"8 GB",storage:"256 GB SSD",cpu:"AMD Ryzen 5 7520U",battery:"47 Wh",hrs:10,perf:60,screen:'15.6" FHD',cam:"720p webcam",os:"Windows 11",weight:"1.62 kg",hue:180,kind:"laptop",tag:"Best value",desc:"Light and quiet with enough speed for office work and online classes."},
+  {id:"macbook-air",name:"Apple MacBook Air M2",brand:"Apple",type:"Laptop",price:0.001,ram:"8 GB",storage:"256 GB SSD",cpu:"Apple M2",battery:"52.6 Wh",hrs:15,perf:95,screen:'13.6" Liquid Retina',cam:"1080p webcam",os:"macOS",weight:"1.24 kg",hue:250,kind:"laptop",tag:"Premium",desc:"Silent, thin and very fast, with a battery that lasts a full work day."},
+  {id:"ipad-10",name:"Apple iPad 10th Gen",brand:"Apple",type:"Tablet",price:0.0007,ram:"4 GB",storage:"64 GB",cpu:"Apple A14 Bionic",battery:"7606 mAh",hrs:10,perf:68,screen:'10.9" Liquid Retina',cam:"12 MP",os:"iPadOS 17",weight:"477 g",hue:300,kind:"tablet",desc:"A simple tablet for reading, drawing, video calls and study."},
+  {id:"tab-a9",name:"Samsung Galaxy Tab A9+",brand:"Samsung",type:"Tablet",price:0.0005,ram:"4 GB",storage:"64 GB",cpu:"Snapdragon 695",battery:"7040 mAh",hrs:12,perf:45,screen:'11" 90Hz',cam:"8 MP",os:"Android 13",weight:"480 g",hue:150,kind:"tablet",desc:"A large, smooth screen with quad speakers for movies and classes."},
+  {id:"watch-gtr",name:"Huawei Watch GT 4",brand:"Huawei",type:"Gadget",price:0.00044,ram:"n/a",storage:"4 GB",cpu:"Kirin A2",battery:"455 mAh",hrs:336,perf:40,screen:'1.43" AMOLED',cam:"n/a",os:"HarmonyOS",weight:"48 g",hue:35,kind:"watch",desc:"Up to 14 days of battery with heart rate, sleep and GPS tracking."},
+  {id:"buds-pro",name:"Oraimo FreePods 4",brand:"Oraimo",type:"Gadget",price:0.0003,ram:"n/a",storage:"n/a",cpu:"Bluetooth 5.3 chip",battery:"500 mAh case",hrs:35,perf:30,screen:"n/a",cam:"n/a",os:"n/a",weight:"48 g",hue:340,kind:"buds",tag:"Best value",desc:"Noise cancelling earbuds with up to 35 hours of use with the case."},
+  {id:"powerbank",name:"Anker PowerCore 20000",brand:"Anker",type:"Gadget",price:0.00032,ram:"n/a",storage:"n/a",cpu:"PowerIQ chip",battery:"20000 mAh",hrs:0,perf:35,screen:"n/a",cam:"n/a",os:"n/a",weight:"356 g",hue:55,kind:"bank",desc:"Charges a phone about four times before it needs charging itself."}
+];
+var TYPE_PLURAL = {Smartphone:"Smartphones",Laptop:"Laptops",Tablet:"Tablets",Gadget:"Gadgets"};
+
+/* ============ PRODUCT ART (inline SVG, no external images) ============ */
+function pic(p, view){
+  var h=p.hue, c1="hsl("+h+",70%,52%)", c2="hsl("+(h+40)+",75%,38%)", bg="hsl("+h+",60%,94%)", id="g"+p.id.replace(/[^a-z0-9]/g,"")+view;
+  var defs='<defs><linearGradient id="'+id+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+c1+'"/><stop offset="1" stop-color="'+c2+'"/></linearGradient></defs>';
+  var s='<svg viewBox="0 0 200 200" role="img" aria-label="'+p.name+'" xmlns="http://www.w3.org/2000/svg">'+defs+'<rect width="200" height="200" fill="'+bg+'"/>';
+  var shadow='<ellipse cx="100" cy="176" rx="52" ry="6" fill="#1E1536" opacity=".12"/>';
+  var k=p.kind;
+  if(k==="phone"){
+    if(view===0){ s+=shadow+'<rect x="62" y="22" width="76" height="152" rx="14" fill="#1E1536"/><rect x="66" y="26" width="68" height="144" rx="11" fill="url(#'+id+')"/><circle cx="100" cy="35" r="3" fill="#1E1536"/><path d="M66 120 Q100 80 134 112 L134 159 Q134 170 123 170 L77 170 Q66 170 66 159Z" fill="#fff" opacity=".18"/><circle cx="100" cy="82" r="14" fill="#fff" opacity=".25"/>'; }
+    else if(view===1){ s+=shadow+'<rect x="62" y="22" width="76" height="152" rx="14" fill="url(#'+id+')"/><rect x="70" y="30" width="34" height="38" rx="9" fill="#1E1536" opacity=".85"/><circle cx="80" cy="41" r="6" fill="#444"/><circle cx="94" cy="41" r="6" fill="#444"/><circle cx="87" cy="57" r="6" fill="#444"/><circle cx="80" cy="41" r="2.5" fill="#9ad"/><circle cx="94" cy="41" r="2.5" fill="#9ad"/><text x="100" y="120" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#fff" opacity=".8">'+p.brand+'</text>'; }
+    else { s+=shadow+'<g transform="rotate(-14 100 100)"><rect x="62" y="22" width="76" height="152" rx="14" fill="#1E1536"/><rect x="66" y="26" width="68" height="144" rx="11" fill="url(#'+id+')"/></g><g transform="rotate(12 100 100) translate(26 10)"><rect x="62" y="22" width="76" height="152" rx="14" fill="url(#'+id+')" opacity=".55"/></g>'; }
+  } else if(k==="laptop"){
+    if(view===0){ s+=shadow+'<rect x="36" y="48" width="128" height="86" rx="7" fill="#1E1536"/><rect x="41" y="53" width="118" height="76" rx="4" fill="url(#'+id+')"/><circle cx="100" cy="50.5" r="1.5" fill="#777"/><path d="M41 112 Q100 70 159 105 L159 125 Q159 129 155 129 L45 129 Q41 129 41 125Z" fill="#fff" opacity=".18"/><path d="M20 138 H180 L170 150 Q168 152 164 152 H36 Q32 152 30 150Z" fill="#B9B2CF"/><rect x="82" y="138" width="36" height="4" rx="2" fill="#8E86AB"/>'; }
+    else if(view===1){ s+=shadow+'<rect x="30" y="52" width="140" height="94" rx="9" fill="url(#'+id+')"/><circle cx="100" cy="99" r="10" fill="#fff" opacity=".35"/><text x="100" y="128" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="700" fill="#fff" opacity=".8">'+p.brand+'</text>'; }
+    else { s+=shadow+'<path d="M24 140 H176 L170 152 H30Z" fill="#B9B2CF"/>'+Array.apply(null,Array(4)).map(function(_,r){return Array.apply(null,Array(10)).map(function(_,c){return '<rect x="'+(36+c*12.5)+'" y="'+(146-0)+'" width="0" height="0"/>';}).join("");}).join("")+'<g transform="translate(0 -4)"><rect x="40" y="76" width="120" height="60" rx="6" fill="#1E1536"/>'+Array.apply(null,Array(4)).map(function(_,r){return Array.apply(null,Array(10)).map(function(_,c){return '<rect x="'+(46+c*10.6)+'" y="'+(82+r*12)+'" width="8.6" height="9" rx="2" fill="#4A4163"/>';}).join("");}).join("")+'</g>'; }
+  } else if(k==="tablet"){
+    if(view===0){ s+=shadow+'<rect x="34" y="34" width="132" height="132" rx="14" fill="#1E1536"/><rect x="40" y="40" width="120" height="120" rx="9" fill="url(#'+id+')"/><circle cx="100" cy="100" r="22" fill="#fff" opacity=".25"/><path d="M40 130 Q100 96 160 124 L160 151 Q160 160 151 160 L49 160 Q40 160 40 151Z" fill="#fff" opacity=".18"/>'; }
+    else if(view===1){ s+=shadow+'<rect x="34" y="34" width="132" height="132" rx="14" fill="url(#'+id+')"/><circle cx="52" cy="52" r="7" fill="#1E1536" opacity=".8"/><text x="100" y="106" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#fff" opacity=".8">'+p.brand+'</text>'; }
+    else { s+=shadow+'<g transform="rotate(-10 100 100)"><rect x="40" y="40" width="120" height="120" rx="12" fill="#1E1536"/><rect x="45" y="45" width="110" height="110" rx="8" fill="url(#'+id+')"/></g>'; }
+  } else if(k==="watch"){
+    s+=shadow+'<rect x="78" y="10" width="44" height="180" rx="14" fill="#2E2350"/>';
+    if(view===0) s+='<circle cx="100" cy="100" r="44" fill="#1E1536"/><circle cx="100" cy="100" r="38" fill="url(#'+id+')"/><path d="M100 100 V78 M100 100 L116 108" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="100" cy="100" r="3" fill="#fff"/>';
+    else if(view===1) s+='<circle cx="100" cy="100" r="44" fill="#4A4163"/><circle cx="100" cy="100" r="26" fill="url(#'+id+')"/><circle cx="100" cy="100" r="9" fill="#fff" opacity=".4"/>';
+    else s+='<circle cx="100" cy="100" r="44" fill="#1E1536"/><circle cx="100" cy="100" r="38" fill="url(#'+id+')"/><rect x="82" y="88" width="36" height="6" rx="3" fill="#fff" opacity=".7"/><rect x="82" y="102" width="26" height="6" rx="3" fill="#fff" opacity=".4"/>';
+  } else if(k==="buds"){
+    if(view===1) s+=shadow+'<rect x="48" y="70" width="104" height="72" rx="30" fill="url(#'+id+')"/><rect x="48" y="96" width="104" height="3" fill="#1E1536" opacity=".3"/><circle cx="100" cy="124" r="4" fill="#fff" opacity=".7"/>';
+    else if(view===0) s+=shadow+'<rect x="48" y="86" width="104" height="64" rx="28" fill="#fff" stroke="#E4DFF0" stroke-width="2"/><ellipse cx="78" cy="78" rx="14" ry="22" fill="url(#'+id+')" transform="rotate(-12 78 78)"/><ellipse cx="122" cy="78" rx="14" ry="22" fill="url(#'+id+')" transform="rotate(12 122 78)"/>';
+    else s+=shadow+'<ellipse cx="76" cy="96" rx="20" ry="30" fill="url(#'+id+')" transform="rotate(-18 76 96)"/><ellipse cx="124" cy="96" rx="20" ry="30" fill="url(#'+id+')" transform="rotate(18 124 96)"/><rect x="71" y="112" width="8" height="40" rx="4" fill="#fff" transform="rotate(-18 76 96)"/><rect x="121" y="112" width="8" height="40" rx="4" fill="#fff" transform="rotate(18 124 96)"/>';
+  } else { /* bank */
+    s+=shadow+'<rect x="56" y="28" width="88" height="144" rx="14" fill="url(#'+id+')"/>';
+    if(view===0) s+='<rect x="72" y="46" width="56" height="10" rx="5" fill="#fff" opacity=".35"/><rect x="72" y="62" width="40" height="10" rx="5" fill="#fff" opacity=".2"/><rect x="82" y="150" width="36" height="8" rx="3" fill="#1E1536" opacity=".6"/>';
+    else if(view===1) s+='<text x="100" y="104" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="800" fill="#fff">'+p.brand+'</text><text x="100" y="122" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#fff" opacity=".8">20000 mAh</text>';
+    else s+='<rect x="76" y="142" width="14" height="8" rx="2" fill="#1E1536"/><rect x="96" y="142" width="14" height="8" rx="2" fill="#1E1536"/><rect x="116" y="142" width="14" height="8" rx="2" fill="#1E1536"/><rect x="72" y="48" width="56" height="48" rx="8" fill="#fff" opacity=".2"/>';
+  }
+  return s+'</svg>';
+}
+
+
+/* Real product photos: images/<product-id>-1.jpg, -2.jpg, -3.jpg (or set images:[...] on a product).
+   The app also tries .jpeg, .png and .webp for the same name. If no photo is found, the built-in
+   illustration is shown instead, so nothing ever looks broken. */
+var IMG_EXTS = [".jpg",".jpeg",".png",".webp",".JPG",".PNG"];
+function pic(p, view){
+  var custom = p.images && p.images[view];
+  var base = CONFIG.IMAGE_FOLDER + p.id + "-" + (view+1);
+  var src = custom || (base + IMG_EXTS[0]);
+  return '<img src="'+esc(src)+'" alt="'+esc(p.name)+'" decoding="async" data-pid="'+p.id+'" data-v="'+view+'" data-x="0"'+(custom?'':' data-base="'+esc(base)+'"')+'>';
+}
+/* error events do not bubble, so listen in the capture phase (works even where inline handlers are blocked) */
+document.addEventListener("error", function(e){
+  var el = e.target;
+  if(!el || el.tagName !== "IMG" || !el.getAttribute("data-pid")) return;
+  var p = byId(el.getAttribute("data-pid")); if(!p) return;
+  var v = +el.getAttribute("data-v"), base = el.getAttribute("data-base"), i = +el.getAttribute("data-x") + 1;
+  if(base && i < IMG_EXTS.length){ el.setAttribute("data-x", i); el.src = base + IMG_EXTS[i]; return; }
+  console.warn("Photo not found for", p.id, "view", v+1, "- showing illustration. Expected:", base ? base + ".jpg" : (p.images||[])[v]);
+  el.outerHTML = art(p, v);
+}, true);
+
+/* ============ STATE ============ */
+var state = {cat:"All", brand:"All", max:0, sort:"featured", q:"", cmp:[], user:null};
+var minPrice = 0.0003, maxPrice = 0.001;
+state.max = maxPrice;
+var $ = function(s){return document.querySelector(s)};
+var app = $("#app");
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function fmt(n){var t=Number(n).toFixed(5).replace(/0+$/,'');var d=t.split('.')[1]||'';while(d.length<4)d+='0';return '0.'+d;}
+function pi(n){return '<i>&pi;</i>'+fmt(n)}
+function byId(id){return PRODUCTS.filter(function(p){return p.id===id})[0]}
+
+/* ============ PI SDK ============ */
+var piReady = false;
+function initPi(){
+  try{
+    if(window.Pi && !piReady){ window.Pi.init({version:"2.0", sandbox:CONFIG.SANDBOX}); piReady = true; }
+  }catch(e){ console.warn("Pi init failed", e); }
+}
+window.addEventListener("load", function(){ initPi(); setTimeout(initPi,1500); });
+
+function toast(msg){var t=$("#toast");t.textContent=msg;t.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(function(){t.classList.remove("show")},3200)}
+function modal(title,text){$("#mTitle").textContent=title;$("#mText").textContent=text;$("#modal").classList.add("show")}
+$("#mOk").onclick=function(){$("#modal").classList.remove("show")};
+
+function serverPost(path, body){
+  if(!CONFIG.API_BASE) return Promise.reject(new Error("No backend configured"));
+  return fetch(CONFIG.API_BASE+path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}).then(function(r){
+    if(!r.ok) throw new Error("Server error "+r.status); return r.json();
+  });
+}
+function onIncomplete(payment){
+  /* A payment that did not finish earlier. Ask your backend to complete it. */
+  try{ var txid = payment.transaction && payment.transaction.txid;
+    serverPost("/payments/complete",{paymentId:payment.identifier, txid:txid}).catch(function(){});
+  }catch(e){}
+}
+function buyNow(p){
+  if(!window.Pi){ modal("Open in Pi Browser","Payments with Pi work inside Pi Browser. Open this app from the Pi Browser to buy "+p.name+"."); return; }
+  initPi();
+  var btn=$("#buyBtn"); if(btn){btn.disabled=true;btn.textContent="Opening Pi payment..."}
+  var reset=function(){ if(btn){btn.disabled=false;btn.innerHTML="Buy now for "+pi(p.price)} };
+  Pi.authenticate(["username","payments"], onIncomplete).then(function(auth){
+    state.user = auth.user;
+    Pi.createPayment({
+      amount: p.price,
+      memo: "Pan Tech Africa: "+p.name,
+      metadata: {productId:p.id}
+    },{
+      onReadyForServerApproval:function(paymentId){
+        serverPost("/payments/approve",{paymentId:paymentId, productId:p.id}).catch(function(e){ toast("Could not reach the server to approve this payment."); });
+      },
+      onReadyForServerCompletion:function(paymentId, txid){
+        serverPost("/payments/complete",{paymentId:paymentId, txid:txid, productId:p.id}).then(function(){
+          reset(); modal("Payment received","Thank you, "+(auth.user.username||"friend")+". Your order for "+p.name+" is confirmed. Support will contact you about delivery.");
+        }).catch(function(){ reset(); toast("Payment sent, but confirmation failed. Contact support with your payment ID."); });
+      },
+      onCancel:function(){ reset(); toast("Payment cancelled."); },
+      onError:function(err){ reset(); console.error(err); toast("Payment failed. Please try again."); }
+    });
+  }).catch(function(err){ reset(); console.error(err); toast("Sign in with Pi to continue."); });
+}
+
+/* ============ CATALOG ============ */
+function filtered(){
+  var q=state.q.trim().toLowerCase();
+  var list=PRODUCTS.filter(function(p){
+    if(state.cat!=="All" && p.type!==state.cat) return false;
+    if(state.brand!=="All" && p.brand!==state.brand) return false;
+    if(p.price>state.max+1e-9) return false;
+    if(q){
+      var hay=(p.name+" "+p.brand+" "+p.type+" "+TYPE_PLURAL[p.type]+" "+p.cpu).toLowerCase();
+      return q.split(/\s+/).every(function(w){return hay.indexOf(w)>-1});
+    }
+    return true;
+  });
+  var s=state.sort;
+  if(s==="low") list.sort(function(a,b){return a.price-b.price});
+  if(s==="high") list.sort(function(a,b){return b.price-a.price});
+  if(s==="perf") list.sort(function(a,b){return b.perf-a.perf});
+  return list;
+}
+function card(p){
+  var on=state.cmp.indexOf(p.id)>-1;
+  var sp=[["RAM",p.ram],["Storage",p.storage],["Processor",p.cpu],["Battery",p.battery]].map(function(x){return '<li><span>'+x[0]+'</span>'+esc(x[1])+'</li>'}).join("");
+  return '<article class="card">'+(p.tag?'<span class="badge">'+esc(p.tag)+'</span>':'')+
+    '<a class="img" href="#/p/'+p.id+'" aria-label="View '+esc(p.name)+'">'+pic(p,0)+'</a>'+
+    '<div class="body"><div class="brand">'+esc(p.brand)+' &middot; '+esc(p.type)+'</div>'+
+    '<h3><a href="#/p/'+p.id+'" style="color:inherit;text-decoration:none">'+esc(p.name)+'</a></h3>'+
+    '<div class="price">'+pi(p.price)+'</div><ul class="specs">'+sp+'</ul>'+
+    '<label class="cmp"><input type="checkbox" data-cmp="'+p.id+'" '+(on?'checked':'')+'> Add to compare</label></div></article>';
+}
+function renderHome(){
+  var brands=["All"].concat(Array.from(new Set(PRODUCTS.map(function(p){return p.brand}))).sort());
+  var cats=["All","Smartphone","Laptop","Tablet","Gadget"];
+  app.innerHTML=
+   '<section class="hero"><div class="wrap"><h1>Genuine smartphones, laptops and gadgets, paid for in Pi.</h1>'+
+   '<p>Compare specifications side by side and check out securely inside Pi Browser.</p>'+
+   '<span class="price-tag">&pi; All prices shown in Pi</span></div></section>'+
+   '<div class="trust"><div class="wrap trust-in">'+
+   '<div><b>Secure Pi payments</b><span>Approved in your Pi wallet</span></div>'+
+   '<div><b>Genuine products</b><span>Manufacturer warranty included</span></div>'+
+   '<div><b>Delivery support</b><span>We arrange it after payment</span></div>'+
+   '<div><b>Help when you need it</b><span>Chat with Support</span></div></div></div>'+
+   '<div class="wrap"><div class="filters">'+
+   '<div class="chips" role="group" aria-label="Device type">'+cats.map(function(c){return '<button class="chip" data-cat="'+c+'" aria-pressed="'+(state.cat===c)+'">'+(c==="All"?"All devices":TYPE_PLURAL[c])+'</button>'}).join("")+'</div>'+
+   '<div class="tools">'+
+   '<select id="fBrand" aria-label="Brand">'+brands.map(function(b){return '<option value="'+b+'"'+(state.brand===b?' selected':'')+'>'+(b==="All"?"All brands":b)+'</option>'}).join("")+'</select>'+
+   '<select id="fSort" aria-label="Sort"><option value="featured">Featured</option><option value="low">Price: low to high</option><option value="high">Price: high to low</option><option value="perf">Best performance</option></select>'+
+   '<label class="range">Up to <input id="fMax" type="range" min="'+minPrice+'" max="'+maxPrice+'" step="0.00001" value="'+state.max+'" aria-label="Maximum price in Pi"><b id="fMaxV">&pi;'+fmt(state.max)+'</b></label>'+
+   '</div></div><div class="count" id="count"></div><div class="grid" id="grid"></div>'+
+   '<footer><b>Pan Tech Africa</b><br>Prices are listed in Pi (&pi;). Product images are illustrations; actual colours may vary.<br>Questions? Use Chat with Support.</footer></div>';
+  $("#fSort").value=state.sort;
+  $("#q").value=state.q;
+  drawGrid();
+}
+function drawGrid(){
+  var l=filtered();
+  $("#count").textContent=l.length+(l.length===1?" product":" products");
+  $("#grid").innerHTML=l.length?l.map(card).join(""):'<div class="empty" style="grid-column:1/-1"><b>No products match</b>Try a different search, or raise the price limit.<br><br><button class="btn btn-line" id="clr">Clear filters</button></div>';
+  var c=$("#clr"); if(c) c.onclick=function(){state.cat="All";state.brand="All";state.max=maxPrice;state.q="";state.sort="featured";renderHome()};
+}
+
+/* ============ DETAIL ============ */
+function renderDetail(id){
+  var p=byId(id); if(!p){location.hash="#/";return}
+  var rows=[["Type",p.type],["Processor",p.cpu],["RAM",p.ram],["Storage",p.storage],["Battery",p.battery],["Display",p.screen],["Camera",p.cam],["Operating system",p.os],["Weight",p.weight]].filter(function(r){return r[1]&&r[1]!=="n/a"});
+  var on=state.cmp.indexOf(p.id)>-1;
+  app.innerHTML='<div class="wrap"><a class="back" href="#/">&larr; All products</a><div class="detail">'+
+   '<div class="gallery"><div class="main" id="mainImg">'+pic(p,0)+'</div><div class="thumbs">'+[0,1,2].map(function(v){return '<button data-v="'+v+'" aria-label="Image '+(v+1)+'" aria-current="'+(v===0)+'">'+pic(p,v)+'</button>'}).join("")+'</div></div>'+
+   '<div class="info"><div class="brand">'+esc(p.brand)+'</div><h1>'+esc(p.name)+'</h1><div class="price">'+pi(p.price)+'</div>'+
+   '<p class="desc">'+esc(p.desc)+'</p>'+
+   '<div class="actions"><button class="btn btn-gold" id="buyBtn">Buy now for '+pi(p.price)+'</button><button class="btn btn-line" id="cmpBtn">'+(on?'Remove from compare':'Add to compare')+'</button></div>'+
+   '<p class="note">You will confirm the payment inside Pi Browser. Need help first? Tap Chat with Support.</p>'+
+   '<h2 class="sec">Full specifications</h2><table class="table">'+rows.map(function(r){return '<tr><th>'+r[0]+'</th><td>'+esc(r[1])+'</td></tr>'}).join("")+'</table></div></div></div>';
+  $("#buyBtn").onclick=function(){buyNow(p)};
+  $("#cmpBtn").onclick=function(){toggleCmp(p.id);renderDetail(p.id)};
+  document.querySelectorAll(".thumbs button").forEach(function(b){b.onclick=function(){
+    $("#mainImg").innerHTML=pic(p,+b.dataset.v);
+    document.querySelectorAll(".thumbs button").forEach(function(x){x.setAttribute("aria-current",x===b)});
+  }});
+  window.scrollTo(0,0);
+}
+
+/* ============ COMPARE ============ */
+function toggleCmp(id){
+  var i=state.cmp.indexOf(id);
+  if(i>-1) state.cmp.splice(i,1);
+  else{ if(state.cmp.length>=4){toast("You can compare up to 4 devices.");return false} state.cmp.push(id); }
+  drawTray(); return true;
+}
+function drawTray(){
+  var t=$("#tray"), n=state.cmp.length;
+  t.classList.toggle("show",n>0); document.body.classList.toggle("tray-on",n>0);
+  $("#traySel").innerHTML=state.cmp.map(function(id){var p=byId(id);return '<span><em>'+esc(p.name)+'</em><button data-rm="'+id+'" aria-label="Remove '+esc(p.name)+'">&times;</button></span>'}).join("");
+  var g=$("#trayGo"); g.textContent=n<2?"Pick 1 more":"Compare ("+n+")"; g.disabled=n<2; g.style.opacity=n<2?.6:1;
+}
+function renderCompare(){
+  var list=state.cmp.map(byId);
+  if(list.length<2){
+    app.innerHTML='<div class="wrap"><a class="back" href="#/">&larr; All products</a><div class="empty"><b>Pick at least two devices</b>Tick "Add to compare" on any product, then come back here.<br><br><a class="btn btn-gold" href="#/" style="text-decoration:none">Browse products</a></div></div>';return;
+  }
+  function best(vals,mode){ /* returns index set of best values */
+    var t=mode==="min"?Math.min.apply(null,vals):Math.max.apply(null,vals);
+    return vals.map(function(v){return v===t && vals.filter(function(x){return x===t}).length<vals.length});
+  }
+  var num=function(s){var m=String(s).match(/[\d.]+/);return m?parseFloat(m[0]):0};
+  var rowsDef=[
+    {l:"Price",f:function(p){return pi(p.price)},v:function(p){return p.price},m:"min"},
+    {l:"Performance",f:function(p){return '<b>'+p.perf+'/100</b><div class="meter"><i style="width:'+p.perf+'%"></i></div>'},v:function(p){return p.perf},m:"max"},
+    {l:"Battery",f:function(p){return esc(p.battery)},v:null},
+    {l:"Battery life",f:function(p){return p.hrs?(p.hrs>=100?Math.round(p.hrs/24)+" days":p.hrs+" hrs"):"n/a"},v:function(p){return p.hrs},m:"max",skip:function(){return list.some(function(p){return p.hrs>=100})&&true}},
+    {l:"Storage",f:function(p){return esc(p.storage)},v:function(p){return /TB/i.test(p.storage)?num(p.storage)*1024:num(p.storage)},m:"max"},
+    {l:"RAM",f:function(p){return esc(p.ram)},v:function(p){return num(p.ram)},m:"max"},
+    {l:"Processor",f:function(p){return esc(p.cpu)},v:null},
+    {l:"Display",f:function(p){return esc(p.screen)},v:null},
+    {l:"Camera",f:function(p){return esc(p.cam)},v:null},
+    {l:"Weight",f:function(p){return esc(p.weight)},v:null},
+    {l:"Operating system",f:function(p){return esc(p.os)},v:null}
+  ];
+  var head='<tr><th></th>'+list.map(function(p){return '<td><div class="pimg">'+pic(p,0)+'</div><b>'+esc(p.name)+'</b><a href="#/p/'+p.id+'">View details</a></td>'}).join("")+'</tr>';
+  var body=rowsDef.map(function(r){
+    var flags=r.v?best(list.map(r.v),r.m):list.map(function(){return false});
+    if(r.l==="Battery life" && list.some(function(p){return p.hrs>=100})) flags=list.map(function(){return false});
+    return '<tr><th>'+r.l+'</th>'+list.map(function(p,i){return '<td class="'+(flags[i]?'best':'')+'">'+r.f(p)+'</td>'}).join("")+'</tr>';
+  }).join("");
+  app.innerHTML='<div class="wrap"><a class="back" href="#/">&larr; All products</a><h2 class="sec" style="margin-top:4px">Compare devices</h2>'+
+   '<div class="scroll-x"><table class="ctable"><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>'+
+   '<p class="legend"><span>Green</span> marks the best value in each row. Compare devices of the same type for the fairest result.</p>'+
+   '<div style="margin-top:16px"><button class="btn btn-line" id="clrCmp">Clear comparison</button></div></div>';
+  $("#clrCmp").onclick=function(){state.cmp=[];drawTray();location.hash="#/"};
+  window.scrollTo(0,0);
+}
+
+/* ============ ROUTER ============ */
+function route(){
+  var h=location.hash||"#/";
+  try{
+    if(h.indexOf("#/p/")===0) renderDetail(h.slice(4));
+    else if(h==="#/compare") renderCompare();
+    else renderHome();
+  }catch(e){
+    console.error(e);
+    app.innerHTML='<div class="wrap"><div class="empty"><b>Something went wrong</b>Reload the app to try again.</div></div>';
+  }
+  drawTray();
+}
+window.addEventListener("hashchange",route);
+
+/* ============ EVENTS ============ */
+document.addEventListener("click",function(e){
+  var t=e.target.closest("[data-cat]");
+  if(t){state.cat=t.dataset.cat;renderHome();return}
+  var r=e.target.closest("[data-rm]");
+  if(r){toggleCmp(r.dataset.rm);if(location.hash==="#/compare")renderCompare();else if(location.hash==="#/"||!location.hash)drawGrid();return}
+});
+document.addEventListener("change",function(e){
+  var t=e.target;
+  if(t.matches("[data-cmp]")){ if(!toggleCmp(t.dataset.cmp)) t.checked=false; return }
+  if(t.id==="fBrand"){state.brand=t.value;drawGrid()}
+  if(t.id==="fSort"){state.sort=t.value;drawGrid()}
+});
+document.addEventListener("input",function(e){
+  if(e.target.id==="fMax"){state.max=+e.target.value;$("#fMaxV").innerHTML="&pi;"+fmt(state.max);drawGrid()}
+});
+$("#q").addEventListener("input",function(e){
+  state.q=e.target.value;
+  if(location.hash && location.hash!=="#/"){location.hash="#/";return}
+  if(!$("#grid")) renderHome(); else drawGrid();
+});
+$("#trayGo").onclick=function(){ if(state.cmp.length>=2) location.hash="#/compare" };
+
+/* ============ SUPPORT CHAT ============ */
+var KB=[
+  {k:/pay|pi |π|wallet|checkout/i,a:"You pay with Pi inside Pi Browser. Tap Buy now on a product, sign in with Pi, and approve the payment in your wallet. The price shown is the exact amount in Pi."},
+  {k:/deliver|ship|arriv|when/i,a:"After your payment is confirmed, our team contacts you to arrange delivery. Delivery time depends on your city. Tell us where you are and we will give an estimate."},
+  {k:/warrant|guarantee|repair|fault|broken/i,a:"Devices come with the manufacturer warranty. If something is wrong, send us your order details and a short description of the problem."},
+  {k:/return|refund|cancel/i,a:"If a device arrives faulty or not as described, contact us within 7 days with your payment ID and we will arrange a replacement or refund."},
+  {k:/compare|difference|better|which/i,a:"Tick Add to compare on two to four products, then tap Compare at the bottom of the screen. Tell me which devices you are choosing between and I can point out the main differences."},
+  {k:/price|cheap|budget|afford/i,a:"Use the price slider and the Sort menu on the home page to see devices that fit your budget. The Best value badge marks good deals."},
+  {k:/hello|hi\b|hey|good (morning|afternoon|evening)/i,a:"Hello! How can we help you today?"},
+  {k:/thank/i,a:"You are welcome. Anything else we can help with?"}
+];
+var chatOpen=false, greeted=false;
+function addMsg(text,who){var d=document.createElement("div");d.className="m "+who;d.textContent=text;var m=$("#msgs");m.appendChild(d);m.scrollTop=m.scrollHeight}
+function botReply(text){
+  var hit=KB.filter(function(x){return x.k.test(text)})[0];
+  var ans=hit?hit.a:"Thanks for your message. A support agent will follow up. You can also use the button below to reach a person directly.";
+  setTimeout(function(){addMsg(ans,"bot")},600);
+}
+function sendChat(text){ text=text.trim(); if(!text) return; addMsg(text,"me"); botReply(text); }
+function openChat(){
+  chatOpen=true; $("#chat").classList.add("open"); $("#fab").style.display="none";
+  if(!greeted){ greeted=true; addMsg("Hi, welcome to Pan Tech Africa. Ask about payments, delivery, warranty or choosing a device.","bot"); }
+  $("#cin").focus();
+}
+function closeChat(){chatOpen=false;$("#chat").classList.remove("open");$("#fab").style.display="flex"}
+$("#fab").onclick=openChat; $("#chatClose").onclick=closeChat;
+$("#cform").addEventListener("submit",function(e){e.preventDefault();var i=$("#cin");sendChat(i.value);i.value=""});
+$("#quick").innerHTML=["How do I pay with Pi?","Delivery time","Warranty"].map(function(t){return '<button type="button">'+t+'</button>'}).join("");
+$("#quick").onclick=function(e){if(e.target.tagName==="BUTTON")sendChat(e.target.textContent)};
+(function(){
+  var h=$("#human");
+  if(CONFIG.SUPPORT_WHATSAPP) h.href="https://wa.me/"+CONFIG.SUPPORT_WHATSAPP;
+  else if(CONFIG.SUPPORT_EMAIL) { h.href="mailto:"+CONFIG.SUPPORT_EMAIL; h.textContent="Email support"; h.removeAttribute("target"); }
+  else h.style.display="none";
+})();
+
+route();
+</script>
+</body>
+</html>
