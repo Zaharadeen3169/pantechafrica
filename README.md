@@ -1,4 +1,4 @@
-# Pan Tech Africa backend
++# Pan Tech Africa backend
 
 ## Run it
 1. Install Node 18 or newer.
